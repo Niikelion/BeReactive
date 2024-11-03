@@ -1,0 +1,25 @@
+﻿using JetBrains.Annotations;
+
+namespace Utils.BR
+{
+    [PublicAPI]
+    public interface IObservable
+    {
+        delegate void OnUpdatedHandler();
+        public event OnUpdatedHandler OnUpdated;
+    }
+
+    [PublicAPI]
+    public interface IObservable<T>: IObservable
+    {
+        delegate void OnChangedHandler(T value);
+        public event OnChangedHandler OnChanged;
+    }
+    
+    [PublicAPI]
+    public class Observable : IObservable
+    {
+        public event IObservable.OnUpdatedHandler OnUpdated;
+        public void Update() => OnUpdated?.Invoke();
+    }
+}

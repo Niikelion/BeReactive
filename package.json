@@ -1,0 +1,17 @@
+{
+    "name": "com.niikelion.utils.be-reactive",
+    "version": "0.0.1",
+    "displayName": "BeReactive",
+    "description": "Reactive library inspired by System.Reactive that does not require any dependency or additional setup.",
+    "unity": "2023.1",
+    "keywords": [
+        "reactive", "utility"
+    ],
+    "author": {
+        "name": "Michał Osiński",
+        "email": "michal.osinski101@gmail.com"
+    },
+    "publishConfig": {
+        "registry": "https://package.openupm.com"
+    }
+}
