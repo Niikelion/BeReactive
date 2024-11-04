@@ -32,6 +32,7 @@ namespace Utils.BR
         
         private T value;
 
+        public static implicit operator T(SimpleProperty<T> v) => v.Value;
         public SimpleProperty(T initialValue) => value = initialValue;
         public SimpleProperty() => value = default;
         public void Dispose()
@@ -54,7 +55,9 @@ namespace Utils.BR
 
         private ValueFactory factory;
         private IObservable[] dependencies;
-        
+
+        public static implicit operator T(ComputedProperty<T> v) => v.Value;
+
         public ComputedProperty(ValueFactory factory, params IObservable[] dependencies)
         {
             this.dependencies = dependencies;
