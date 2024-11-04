@@ -21,7 +21,7 @@ namespace Utils.BR
             get => value;
             set
             {
-                if (Comparer<T>.Default.Compare(value, this.value) == 0)
+                if (EqualityComparer<T>.Default.Equals(value, this.value))
                     return;
                 
                 this.value = value;
@@ -43,7 +43,7 @@ namespace Utils.BR
     }
     
     [PublicAPI]
-    public class CalculatedProperty<T>: IProperty<T>
+    public class ComputedProperty<T>: IProperty<T>
     {
         public delegate T ValueFactory();
         
@@ -55,7 +55,7 @@ namespace Utils.BR
         private ValueFactory factory;
         private IObservable[] dependencies;
         
-        public CalculatedProperty(ValueFactory factory, params IObservable[] dependencies)
+        public ComputedProperty(ValueFactory factory, params IObservable[] dependencies)
         {
             this.dependencies = dependencies;
             this.factory = factory;
@@ -85,8 +85,8 @@ namespace Utils.BR
     [PublicAPI]
     public static class PropertyExtensions
     {
-        public static IProperty<TResult> Select<TSource, TResult>(this IProperty<TSource> property, Func<TSource, TResult> map) => new CalculatedProperty<TResult>(() => map(property.Value), property);
-        public static IProperty<T> Run<T>(this IProperty<T> property, IObservable<T>.OnChangedHandler onChanged)
+        public static IProperty<TResult> Select<TSource, TResult>(this IProperty<TSource> property, Func<TSource, TResult> map) => new ComputedProperty<TResult>(() => map(property.Value), property);
+        public static IProperty<T> Subscribe<T>(this IProperty<T> property, IObservable<T>.OnChangedHandler onChanged)
         {
             property.OnChanged += onChanged;
             return property;

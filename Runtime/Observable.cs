@@ -22,4 +22,14 @@ namespace Utils.BR
         public event IObservable.OnUpdatedHandler OnUpdated;
         public void Update() => OnUpdated?.Invoke();
     }
+
+    [PublicAPI]
+    public static class ObservableExtensions
+    {
+        public static T Subscribe<T>(this T property, IObservable.OnUpdatedHandler onUpdated) where T: IObservable
+        {
+            property.OnUpdated += onUpdated;
+            return property;
+        }
+    }
 }
