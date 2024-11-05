@@ -86,11 +86,7 @@ namespace Utils.BR
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
         IDictionaryEnumerator IDictionary.GetEnumerator() => new DictionaryEnumerator(this);
 
-        public void Add(KeyValuePair<TKey, TValue> item)
-        {
-            values.Add(item.Key, CreateEntry(item.Value));
-            BroadcastUpdate();
-        }
+        public void Add(KeyValuePair<TKey, TValue> item) => Add(item.Key, item.Value);
 
         public void Clear()
         {
@@ -125,7 +121,12 @@ namespace Utils.BR
             return Remove(item.Key);
         }
 
-        public void Add(TKey key, TValue value) => values.Add(key, CreateEntry(value));
+        public void Add(TKey key, TValue value)
+        {
+            values.Add(key, CreateEntry(value));
+            BroadcastUpdate();
+        }
+
         void IDictionary.Add(object key, object value) => Add((TKey) key, (TValue) value);
 
         public bool ContainsKey(TKey key) => values.ContainsKey(key);
