@@ -78,22 +78,19 @@ namespace Utils.BR
 
         private readonly Dictionary<TKey, (TValue value, IObservable observable)> values = new ();
 
-        public void Dispose()
-        {
-            Clear();
-            BroadcastUpdate();
-        }
-        public IEnumerator<KeyValuePair<TKey, TValue>> GetEnumerator()
-        {
-            foreach (var item in values)
-                yield return new(item.Key, item.Value.value);
-        }
+        public void Dispose() => Clear();
+
+        public IEnumerator<KeyValuePair<TKey, TValue>> GetEnumerator() =>
+            values.Select(v => new KeyValuePair<TKey, TValue>(v.Key, v.Value.value)).GetEnumerator();
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
         IDictionaryEnumerator IDictionary.GetEnumerator() => new DictionaryEnumerator(this);
 
-        public void Add(KeyValuePair<TKey, TValue> item) =>
+        public void Add(KeyValuePair<TKey, TValue> item)
+        {
             values.Add(item.Key, CreateEntry(item.Value));
+            BroadcastUpdate();
+        }
 
         public void Clear()
         {
@@ -101,6 +98,7 @@ namespace Utils.BR
                 UnregisterValue(item.Value.observable);
             
             values.Clear();
+            BroadcastUpdate();
         }
 
         public bool Contains(KeyValuePair<TKey, TValue> item)
@@ -135,7 +133,12 @@ namespace Utils.BR
         public bool Remove(TKey key)
         {
             UnregisterValue(values.GetValueOrDefault(key, default).observable);
-            return values.Remove(key);
+            bool removed = values.Remove(key);
+            
+            if (removed)
+                BroadcastUpdate();
+            
+            return removed;
         }
         void IDictionary.Remove(object key) => Remove((TKey) key);
 
