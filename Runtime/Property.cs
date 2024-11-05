@@ -89,10 +89,5 @@ namespace Utils.BR
     public static class PropertyExtensions
     {
         public static IProperty<TResult> Select<TSource, TResult>(this IProperty<TSource> property, Func<TSource, TResult> map) => new ComputedProperty<TResult>(() => map(property.Value), property);
-        public static IProperty<T> Subscribe<T>(this IProperty<T> property, IObservable<T>.OnChangedHandler onChanged)
-        {
-            property.OnChanged += onChanged;
-            return property;
-        }
     }
 }

@@ -6,17 +6,15 @@ using JetBrains.Annotations;
 
 namespace Utils.BR
 {
-    [PublicAPI] public class ObservableDictionary<TKey, TValue>: IObservable, IDictionary<TKey, TValue>, IDictionary
+    [PublicAPI] public class ObservableDictionary<TKey, TValue>: IObservable<IDictionary<TKey, TValue>>, IDictionary<TKey, TValue>, IDictionary
     {
-        public class DictionaryEnumerator : IDictionaryEnumerator
+        private class DictionaryEnumerator : IDictionaryEnumerator
         {
             private readonly DictionaryEntry[] items;
             private int index = -1;
 
-            public DictionaryEnumerator(ObservableDictionary<TKey, TValue> dictionary)
-            {
+            public DictionaryEnumerator(ObservableDictionary<TKey, TValue> dictionary) =>
                 items = dictionary.Select(d => new DictionaryEntry(d.Key, d.Value)).ToArray();
-            }
 
             public object Current => Entry;
             public DictionaryEntry Entry => items.Also(ValidateIndex).Let(i => i[index]);
@@ -51,6 +49,7 @@ namespace Utils.BR
         bool IDictionary.IsFixedSize => false;
 
         public event IObservable.OnUpdatedHandler OnUpdated;
+        public event IObservable<IDictionary<TKey, TValue>>.OnChangedHandler OnChanged; 
 
         public ObservableDictionary() { }
 

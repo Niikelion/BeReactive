@@ -31,5 +31,10 @@ namespace Utils.BR
             property.OnUpdated += onUpdated;
             return property;
         }
+        public static IObservable<T> Subscribe<T>(this IObservable<T> property, IObservable<T>.OnChangedHandler onChanged)
+        {
+            property.OnChanged += onChanged;
+            return property;
+        }
     }
 }
