@@ -93,6 +93,6 @@ namespace Utils.BR
     [PublicAPI]
     public static class PropertyExtensions
     {
-        public static IProperty<TResult> Select<TSource, TResult>(this IProperty<TSource> property, Func<TSource, TResult> map) => new ComputedProperty<TResult>(() => map(property.Value), property);
+        public static IProperty<TResult> Map<TSource, TResult>(this IProperty<TSource> property, Func<TSource, TResult> map) => new ComputedProperty<TResult>(() => map(property.Value), property);
     }
 }

@@ -2,11 +2,12 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.Serialization;
 using JetBrains.Annotations;
 
 namespace Utils.BR
 {
-    [PublicAPI] public class ObservableDictionary<TKey, TValue>: IObservable<IDictionary<TKey, TValue>>, IDictionary<TKey, TValue>, IDictionary
+    [PublicAPI] public class ObservableDictionary<TKey, TValue>: IObservable<IDictionary<TKey, TValue>>, IDictionary<TKey, TValue>, IReadOnlyDictionary<TKey, TValue>, IDictionary, IDeserializationCallback, ISerializable
     {
         private class DictionaryEnumerator : IDictionaryEnumerator
         {
@@ -41,6 +42,8 @@ namespace Utils.BR
         ICollection<TValue> IDictionary<TKey, TValue>.Values => values.Select(v => v.Value.value).ToArray();
         ICollection IDictionary.Keys => values.Keys;
         ICollection IDictionary.Values => values.Select(v => v.Value.value).ToArray();
+        IEnumerable<TKey> IReadOnlyDictionary<TKey, TValue>.Keys => values.Keys;
+        IEnumerable<TValue> IReadOnlyDictionary<TKey, TValue>.Values => values.Select(v => v.Value.value);
         
         public int Count => values.Count;
         public bool IsReadOnly => false;
@@ -90,11 +93,10 @@ namespace Utils.BR
 
         public void Clear()
         {
-            foreach (var item in values)
-                UnregisterValue(item.Value.observable);
-            
+            bool wasNotEmpty = values.Count > 0;
+            foreach (var item in values) UnregisterValue(item.Value.observable);
             values.Clear();
-            BroadcastUpdate();
+            if (wasNotEmpty) BroadcastUpdate();
         }
 
         public bool Contains(KeyValuePair<TKey, TValue> item)
@@ -156,6 +158,11 @@ namespace Utils.BR
             return false;
         }
 
+        void IDeserializationCallback.OnDeserialization(object sender) { }
+
+        void ISerializable.GetObjectData(SerializationInfo info, StreamingContext context) =>
+            info.AddValue("content", values, values.GetType());
+
         private (TValue value, IObservable mutable) CreateEntry(TValue item)
         {
             if (item is IObservable mutable)
@@ -172,6 +179,10 @@ namespace Utils.BR
                 mutable.OnUpdated -= BroadcastUpdate;
         }
 
-        private void BroadcastUpdate() => OnUpdated?.Invoke();
+        private void BroadcastUpdate()
+        {
+            OnUpdated?.Invoke();
+            OnChanged?.Invoke(this);
+        }
     }
 }
