@@ -78,7 +78,12 @@ namespace Utils.BR
 
         private void RecalculateAndCache()
         {
+            var previousValue = Value;
+            
             Value = factory();
+
+            if (EqualityComparer<T>.Default.Equals(previousValue, Value))
+                return;
             
             OnUpdated?.Invoke();
             OnChanged?.Invoke(Value);
