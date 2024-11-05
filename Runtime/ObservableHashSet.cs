@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.Serialization;
@@ -34,6 +35,21 @@ namespace Utils.BR
             BroadcastUpdate();
             return true;
         }
+
+        public int RemoveWhere(Predicate<T> match)
+        {
+            var toRemove = values.Where(v => match(v)).ToArray();
+
+            foreach (var element in toRemove)
+            {
+                values.Remove(element);
+                UnregisterValue(element);
+            }
+            
+            if (toRemove.Length > 0) BroadcastUpdate();
+            
+            return toRemove.Length;
+        }
         public void Clear()
         {
             bool wasNotEmpty = values.Count > 0;
@@ -44,7 +60,7 @@ namespace Utils.BR
         }
         public bool Contains(T item) => values.Contains(item);
         public void CopyTo(T[] array, int arrayIndex) => values.CopyTo(array, arrayIndex);
-        void ISet<T>.ExceptWith(IEnumerable<T> other)
+        public void ExceptWith(IEnumerable<T> other)
         {
             var toRemove = other as T[] ?? other.ToArray();
             var otherSet = toRemove.ToHashSet();
@@ -57,7 +73,7 @@ namespace Utils.BR
             foreach (var item in otherSet) UnregisterValue(item);
             BroadcastUpdate();
         }
-        void ISet<T>.IntersectWith(IEnumerable<T> other)
+        public void IntersectWith(IEnumerable<T> other)
         {
             var toIntersect = other as T[] ?? other.ToArray();
             var otherSet = toIntersect.ToHashSet();
@@ -71,7 +87,7 @@ namespace Utils.BR
             foreach (var item in toRemove) UnregisterValue(item);
             BroadcastUpdate();
         }
-        void ISet<T>.SymmetricExceptWith(IEnumerable<T> other)
+        public void SymmetricExceptWith(IEnumerable<T> other)
         {
             var otherArr = other as T[] ?? other.ToArray();
             var otherSet = otherArr.ToHashSet();
@@ -90,7 +106,7 @@ namespace Utils.BR
             
             BroadcastUpdate();
         }
-        void ISet<T>.UnionWith(IEnumerable<T> other)
+        public void UnionWith(IEnumerable<T> other)
         {
             var otherArr = other as T[] ?? other.ToArray();
             var otherSet = otherArr.ToHashSet();
@@ -104,14 +120,14 @@ namespace Utils.BR
             BroadcastUpdate();
         }
 
-        bool ISet<T>.IsProperSubsetOf(IEnumerable<T> other) => values.IsProperSubsetOf(other);
-        bool ISet<T>.IsProperSupersetOf(IEnumerable<T> other) => values.IsProperSupersetOf(other);
-        bool ISet<T>.IsSubsetOf(IEnumerable<T> other) => values.IsSubsetOf(other);
-        bool ISet<T>.IsSupersetOf(IEnumerable<T> other) => values.IsSupersetOf(other);
-        bool ISet<T>.Overlaps(IEnumerable<T> other) => values.Overlaps(other);
-        bool ISet<T>.SetEquals(IEnumerable<T> other) => values.SetEquals(other);
+        public bool IsProperSubsetOf(IEnumerable<T> other) => values.IsProperSubsetOf(other);
+        public bool IsProperSupersetOf(IEnumerable<T> other) => values.IsProperSupersetOf(other);
+        public bool IsSubsetOf(IEnumerable<T> other) => values.IsSubsetOf(other);
+        public bool IsSupersetOf(IEnumerable<T> other) => values.IsSupersetOf(other);
+        public bool Overlaps(IEnumerable<T> other) => values.Overlaps(other);
+        public bool SetEquals(IEnumerable<T> other) => values.SetEquals(other);
         
-        IEnumerator<T> IEnumerable<T>.GetEnumerator() => values.GetEnumerator();
+        public IEnumerator<T> GetEnumerator() => values.GetEnumerator();
         IEnumerator IEnumerable.GetEnumerator() => values.GetEnumerator();
 
         public void OnDeserialization(object sender) { }
