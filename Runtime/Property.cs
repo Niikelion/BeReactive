@@ -47,25 +47,32 @@ namespace Utils.BR
     public class ComputedProperty<T>: IProperty<T>
     {
         public delegate T ValueFactory();
+        public delegate bool ComparisonPredicate(T oldValue, T newValue);
         
         public event IObservable.OnUpdatedHandler OnUpdated;
         public event IObservable<T>.OnChangedHandler OnChanged;
 
         public T Value { get; private set; }
 
-        private ValueFactory factory;
-        private IObservable[] dependencies;
+        [NotNull] private ValueFactory factory;
+        [NotNull] private ComparisonPredicate comparison;
+        [NotNull] private IObservable[] dependencies;
 
         public static implicit operator T(ComputedProperty<T> v) => v.Value;
 
-        public ComputedProperty(ValueFactory factory, params IObservable[] dependencies)
+        public ComputedProperty([NotNull] ValueFactory factory, [NotNull] ComparisonPredicate comparison, params IObservable[] dependencies)
         {
+            this.comparison = comparison;
             this.dependencies = dependencies;
             this.factory = factory;
             Value = factory();
             foreach (var dependency in dependencies)
                 dependency.OnUpdated += RecalculateAndCache;
         }
+
+        public ComputedProperty(ValueFactory factory, params IObservable[] dependencies):
+            this(factory, comparison: EqualityComparer<T>.Default.Equals, dependencies: dependencies) {}
+        
         public void Dispose()
         {
             foreach (var dependency in dependencies)
@@ -79,11 +86,9 @@ namespace Utils.BR
         private void RecalculateAndCache()
         {
             var previousValue = Value;
-            
             Value = factory();
 
-            if (EqualityComparer<T>.Default.Equals(previousValue, Value))
-                return;
+            if (comparison(previousValue, Value)) return;
             
             OnUpdated?.Invoke();
             OnChanged?.Invoke(Value);
@@ -93,6 +98,8 @@ namespace Utils.BR
     [PublicAPI]
     public static class PropertyExtensions
     {
-        public static IProperty<TResult> Map<TSource, TResult>(this IProperty<TSource> property, Func<TSource, TResult> map) => new ComputedProperty<TResult>(() => map(property.Value), property);
+        public static IProperty<TResult> Map<TSource, TResult>(
+            this IProperty<TSource> property, Func<TSource, TResult> map
+        ) => new ComputedProperty<TResult>(() => map(property.Value), property);
     }
 }
